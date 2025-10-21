@@ -40,46 +40,78 @@ class TestMarginalValue(unittest.TestCase):
 
     #TODO: Fill in test cases
     def test_student_case_1(self):
-        """Student test case 1"""
+        """Student test case 1: Test when bidder wins all goods with additive valuation"""
         
-        goods = ???
-        bids = ???
-        prices = ???
+        goods = {"A", "B", "C"}
+        bids = {"A": 100, "B": 80, "C": 60}
+        prices = {"A": 50, "B": 70, "C": 55}
 
         def student_valuation(bundle):
-            ???
+            # Simple additive valuation: A=50, B=40, C=30
+            values = {"A": 50, "B": 40, "C": 30}
+            return sum(values.get(item, 0) for item in bundle)
 
-        ??? = calculate_marginal_value(goods, ???, student_valuation, bids, prices)
+        mv_a = calculate_marginal_value(goods, "A", student_valuation, bids, prices)
 
-        self.assertEqual(???, 0, "TODO: Replace with correct expected value")
+        self.assertEqual(mv_a, 50, "Marginal value of A should be 50 in additive valuation")
 
     def test_student_case_2(self):
-        """Student test case 2"""
+        """Student test case 2: Test complement valuation where goods work better together"""
         
-        goods = ???
-        bids = ???
-        prices = ???
+        goods = {"X", "Y", "Z"}
+        bids = {"X": 60, "Y": 40, "Z": 20}
+        prices = {"X": 50, "Y": 35, "Z": 25}
 
         def student_valuation(bundle):
-            ???
+            # Complement valuation: X and Y together are worth more than sum of parts
+            if "X" in bundle and "Y" in bundle and "Z" in bundle:
+                return 120  # Strong complement effect
+            elif "X" in bundle and "Y" in bundle:
+                return 90   # Complement effect for X+Y
+            elif "X" in bundle:
+                return 40
+            elif "Y" in bundle:
+                return 30
+            elif "Z" in bundle:
+                return 15
+            return 0
 
-        ??? = calculate_marginal_value(goods, ???, student_valuation, bids, prices)
+        mv_x = calculate_marginal_value(goods, "X", student_valuation, bids, prices)
 
-        self.assertEqual(???, 0, "TODO: Replace with correct expected value")
+        # When bidder wins X and Y (but not Z since bid < price), 
+        # marginal value of X = valuation({X,Y}) - valuation({Y}) = 90 - 30 = 60
+        self.assertEqual(mv_x, 60, "Marginal value of X with complement effect should be 60")
     
     def test_student_case_3(self):
-        """Student test case 3"""
+        """Student test case 3: Test substitute valuation with diminishing returns"""
         
-        goods = ???
-        bids = ???
-        prices = ???
+        goods = {"P", "Q", "R"}
+        bids = {"P": 70, "Q": 50, "R": 30}
+        prices = {"P": 60, "Q": 45, "R": 35}
 
         def student_valuation(bundle):
-            ???
+            # Substitute valuation: goods are substitutes with diminishing returns
+            # Having multiple similar goods reduces their individual value
+            base_values = {"P": 50, "Q": 40, "R": 25}
+            if not bundle:
+                return 0
+            
+            total_value = 0
+            for item in bundle:
+                total_value += base_values.get(item, 0)
+            
+            # Apply diminishing returns: each additional item is worth less
+            discount_factor = 0.8 ** (len(bundle) - 1)
+            return total_value * discount_factor
 
-        ??? = calculate_marginal_value(goods, ???, student_valuation, bids, prices)
+        mv_q = calculate_marginal_value(goods, "Q", student_valuation, bids, prices)
 
-        self.assertEqual(???, 0, "TODO: Replace with correct expected value")
+        # Bidder wins P and Q (but not R since bid < price)
+        # Marginal value of Q = valuation({P,Q}) - valuation({P})
+        # valuation({P,Q}) = (50+40) * 0.8 = 72
+        # valuation({P}) = 50 * 1.0 = 50
+        # So mv_q = 72 - 50 = 22
+        self.assertEqual(mv_q, 22, "Marginal value of Q with substitute effect should be 22")
 
 
 if __name__ == "__main__":

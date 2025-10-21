@@ -55,7 +55,11 @@ class SCPPAgent(SimultaneousAuctionAgent):
         return self.get_bids()
     
     def get_bids(self):
-        bids = ???
+        bids = local_bid(
+            self.goods, 
+            self.valuation_function, 
+            self.learned_prices
+        )
         return bids
 
     def update(self):
@@ -69,18 +73,31 @@ class SCPPAgent(SimultaneousAuctionAgent):
 
         # TODO: insert observed prices into self.curr_prices
         # TODO: update simulation_count
+        self.curr_prices.append(observed_prices)
+        self.simulation_count += 1
 
         if self.simulation_count % self.NUM_SIMULATIONS_PER_ITERATION == 0:
             # TODO: Find point estimate (mean) from recent observations
+            price_total = {g: 0.0 for g in self.goods}
+            for price in self.curr_prices:
+                for good in self.goods:
+                    price_total[good] += price[good]
+            
+            p_mean = {g: price_total[g] / len(self.curr_prices) for g in self.goods}
+            p_old = self.learned_prices
+            new_prices = {g: (1 - self.ALPHA) * p_old[g] + self.ALPHA * p_mean[g] for g in self.goods}
+            self.learned_prices = new_prices
+            self.curr_prices = []
 
             # TODO: Find new price. Use exponential smoothing update pt = (1 − α) pt−1 + αp_mean
-
+           
             # TODO: Convergence check
             # TODO: Update learned_prices. Reset the current prices list. 
 
             if self.mode == "TRAIN":
                 # TODO: Save the updated prices to disk
-                pass
+                self.save_prices()
+                # pass
 
 ################### SUBMISSION #####################
 agent_submission = SCPPAgent("SCPP Agent")
