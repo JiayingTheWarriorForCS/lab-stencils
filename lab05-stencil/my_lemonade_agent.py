@@ -12,14 +12,24 @@ class MyNRLAgent(LemonadeAgent):
         pass
 
     def get_action(self):
-        raise NotImplementedError
+        # raise NotImplementedError
+        opp1_hist = self.get_opp1_action_history()
+        opp2_hist = self.get_opp2_action_history()
+
+        if not opp1_hist or not opp2_hist:
+            return random.randint(0, 11)
+        opp1 = opp1_hist[-1]
+        opp2 = opp2_hist[-1]
+        avg = ((opp1 + opp2) // 2) % 12
+        best = (avg + 6) % 12 
+        return best
 
     def update(self):
         pass
     
 
 # TODO: Give your agent a NAME 
-name = ... # TODO: PLEASE NAME ME D:
+name = "JLBot" # TODO: PLEASE NAME ME D:
 
 
 ################### SUBMISSION #####################

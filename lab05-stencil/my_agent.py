@@ -1,5 +1,7 @@
 # from my_rl_lemonade_agent import rl_agent_submission 
 import argparse
+import random
+import numpy as np
 # from my_lemonade_agent import nrl_agent_submission 
 from agt_server.agents.base_agents.lemonade_agent import LemonadeAgent
 from agt_server.local_games.lemonade_arena import LemonadeArena
@@ -11,14 +13,62 @@ from agt_server.agents.test_agents.lemonade.increment_agent.my_agent import Incr
 # NOTE: The README will contain helpful methods for implementing your agent, please take a look at it!
 class MyAgent(LemonadeAgent):
     def setup(self):
-        self.name = ???
-        pass
+        self.name = "JBot"
+        self.num_actions = 12                     
+        self.num_states = 12 * 12 * 12             
+        self.q_table = np.full((self.num_states, self.num_actions), 8.0) 
+        self.learning_rate = 0.1
+        self.discount_factor = 0.9
+        self.epsilon = 0.5                
+        self.last_state = 0
+        self.last_action = None
+        # pass
+    
+    def determine_state(self):
+        my_hist = self.get_action_history()
+        opp1_hist = self.get_opp1_action_history()
+        opp2_hist = self.get_opp2_action_history()
 
+        if not my_hist:
+            return 0
+
+        my_last = my_hist[-1]
+        opp1_last = opp1_hist[-1] if opp1_hist else random.randint(0, 11)
+        opp2_last = opp2_hist[-1] if opp2_hist else random.randint(0, 11)
+
+        rel1 = (opp1_last - my_last) % 12
+        rel2 = (opp2_last - my_last) % 12
+        return rel1 * 12 + rel2
+    
     def get_action(self):
-        raise NotImplementedError
+        state = self.determine_state()
+        self.last_state = state
+        if random.random() < self.epsilon:
+            action = random.randint(0, self.num_actions - 1)
+        else:
+            action = int(np.argmax(self.q_table[state]))
+
+        self.last_action = action
+        return action
+        # raise NotImplementedError
 
     def update(self):
-        pass
+        if self.last_action is None:
+            return
+
+        reward_hist = self.get_util_history()
+        if not reward_hist:
+            return
+        reward = reward_hist[-1]
+
+        next_state = self.determine_state()
+        old_value = self.q_table[self.last_state, self.last_action]
+        next_max = np.max(self.q_table[next_state])
+
+        new_value = (1 - self.learning_rate) * old_value + \
+                    self.learning_rate * (reward + self.discount_factor * next_max)
+        self.q_table[self.last_state, self.last_action] = new_value
+        # pass
     
 
 # # TODO: Give your agent a NAME 
@@ -28,7 +78,7 @@ class MyAgent(LemonadeAgent):
 ################### SUBMISSION #####################
 # TODO: Set to your RL Agent by default, change it to whatever you want as long as its a agent that inherits LemonadeAgent
 # agent_submission = rl_agent_submission
-agent_submission = ???
+agent_submission = MyAgent("JBot")
 ################### SUBMISSION #####################
 
 if __name__ == "__main__":

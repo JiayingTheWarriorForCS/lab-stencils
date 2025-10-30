@@ -20,15 +20,23 @@ class MyRLAgent(QLearning):
         my_util_hist = self.get_util_history()
         opp1_action_hist = self.get_opp1_action_history()
         opp2_action_hist = self.get_opp2_action_history()
-        
-        raise NotImplementedError
+        if not my_action_hist or not opp1_action_hist or not opp2_action_hist:
+            return 0
+
+        my_last = my_action_hist[-1]
+        opp1_last = opp1_action_hist[-1]
+        opp2_last = opp2_action_hist[-1]
+
+        state = my_last * 12 * 12 + opp1_last * 12 + opp2_last
+        return state
+        # raise NotImplementedError
 
 # TODO: Give your agent a NAME 
-name = ... # TODO: PLEASE NAME ME D:
+name = "JRLBot" # TODO: PLEASE NAME ME D:
 
 
 # TODO: Determine how many states that your agent will be using
-NUM_POSSIBLE_STATES = 0
+NUM_POSSIBLE_STATES = 12 * 12 * 12
 INITIAL_STATE = 0
 
 
